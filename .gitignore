@@ -1,0 +1,40 @@
+/target/
+/.settings/
+/.classpath
+/.springBeans
+# maven ignore
+target/
+*.jar
+*.war
+*.zip
+*.tar
+*.tar.gz
+.log
+
+# eclipse ignore
+.settings/
+.project
+.classpath
+.factorypath
+.springBeans
+.pydevproject
+
+
+# idea ignore
+.idea/
+*.ipr
+*.iml
+*.iws
+
+# temp ignore
+*.log
+*.cache
+*.diff
+*.patch
+*.tmp
+*.pyc
+
+# system ignore
+.DS_Store
+Thumbs.db
+
