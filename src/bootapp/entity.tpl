@@ -20,7 +20,7 @@ import javax.persistence.Table;
 * at {create_time} , table_name:{table_name}
 * </pre>
 */
-@Table
+@Table(name = "{table_name}")
 @Entity
 public class {entity_name} {{
 

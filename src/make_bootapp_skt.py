@@ -253,29 +253,40 @@ def out_mapper_xml_file(package_dir, table_name, table_columns):
         'os_user'     : os_user,
         'copy_right'  : copy_right
     }
-    field_list = []
+    query_cond_list = []
+    insert_cols = []
+    insert_entity_fields=[]
     # 处理每行字段信息
     for col in table_columns:
         col_name = col[0]
+        field_name = get_camelcase(col_name);
+        if 'PRI' in col :
+            model['pri_col']=col_name
+            model['pri_field']=field_name
+        else:
+            insert_cols.append(col_name)
+            insert_entity_fields.append('#{{{0}.{1}}}'.format(entity_name,field_name))
         field_desc = {
-            'field_name' : get_camelcase(col_name),
+            'field_name' : field_name,
             'col_name' : col_name
         }
         if col_name == 'create_time':
-            field_list.append(
+            query_cond_list.append(
             """
             <if test="beginCreateTime!=null and endCreateTime!=null">
                 and ( create_time <![CDATA[ >= ]]> #{{beginCreateTime}} and create_time <![CDATA[ < ]]> #{{endCreateTime}} )
             </if>""".format(**field_desc)
             )
         else:
-            field_list.append(
+            query_cond_list.append(
             """
             <if test="{field_name}!=null">and {col_name}=#{{{field_name}}}</if>""".format(**field_desc)
             )
         pass
     
-    model['query_condition']=''.join(field_list)
+    model['query_condition']=''.join(query_cond_list)
+    model['insert_cols']=',\n          '.join(insert_cols)
+    model['insert_entity_fields']=',\n          '.join(insert_entity_fields)
     out_content = file_tpl.format(**model)
     with open(file=out_file, mode='w', encoding="utf-8") as fw :
         fw.write(out_content)
