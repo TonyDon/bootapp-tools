@@ -3,7 +3,7 @@ import threading
     
 #
 # id sequence generator
-# 序列号生成器 ，毫秒时间差值+worker编号+自增值
+# 序列号生成器 ，毫秒时间差值+worker编号（4bit)+自增值(12bit)
 #
 class IdGenerator(object):
     
