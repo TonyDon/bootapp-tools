@@ -8,7 +8,7 @@ import threading
 class IdGenerator(object):
     
     workerNo = None
-    spanTime = 1535731200000
+    spanTime = 1543593600000
     incrSeq = 0
     lastTime = None
     
