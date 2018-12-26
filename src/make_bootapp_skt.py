@@ -1,22 +1,36 @@
-import os
+import os, sys
 import pymysql
 import time
 import getpass
 
 os_user = getpass.getuser()
-table_name = input('请输入表名称:')
-app_pack_name = input('请输入项目包名称（如：com.uuola.app:')
+mysql_info = input('请输入MYSQL连接信息(如: 127.0.0.1 3306 root root utf8 db_name):')
+table_name = input('请输入MYSQL表名称:')
+app_pack_name = input('请输入项目包名称(如：com.uuola.app):')
 out_dir = input('请输入输出目录:')
 copy_right= input('请输入版权信息:')
 
-sql = 'desc {}'.format(table_name)
-curr_dir = os.path.dirname(os.path.realpath(__file__))
-table_cols = None
-conn = pymysql.connect(host='127.0.0.1',port=3306, user='root', charset='utf8', password='root', db='ny_site')
+curr_dir = None
+if getattr(sys, 'frozen', False):
+        curr_dir = os.path.dirname(sys.executable)
+elif __file__ :
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
 
+table_cols = None
+mysql_conn_info = mysql_info.split(' ')
+if mysql_conn_info and len(mysql_conn_info)==0:
+    raise Exception('mysql连接信息错误.')
+    
+conn = pymysql.connect(host=mysql_conn_info[0],
+                       port=int(mysql_conn_info[1]), 
+                       user=mysql_conn_info[2], 
+                       password=mysql_conn_info[3], 
+                       charset=mysql_conn_info[4], 
+                       db=mysql_conn_info[5])
+# 查询表字段信息
 try:
         with conn.cursor() as cur :
-            cur.execute(sql)
+            cur.execute('desc {}'.format(table_name))
             table_cols = cur.fetchall()
         conn.commit()
 except Exception as e:
@@ -25,6 +39,7 @@ except Exception as e:
 finally:
         conn.close()
 
+#构建包输出目录
 out_package_dir = os.path.join(out_dir, app_pack_name.replace('.', '/')) 
 if not os.path.exists(out_package_dir) :
     os.makedirs(out_package_dir)
