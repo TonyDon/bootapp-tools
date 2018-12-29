@@ -28,9 +28,24 @@ conn = pymysql.connect(host=mysql_conn_info[0],
                        charset=mysql_conn_info[4], 
                        db=mysql_conn_info[5])
 # 查询表字段信息
+sql = """
+        SELECT
+          column_name AS col_name,
+          column_type AS type ,
+          column_default AS col_val,
+          character_maximum_length as char_max_len,
+          numeric_precision as number_len,
+          numeric_scale as number_scale,
+          column_comment as comment,
+          column_key as pri
+        FROM information_schema.columns
+        WHERE table_name = '{}'
+        ORDER BY ORDINAL_POSITION asc
+    """.format(table_name)
+
 try:
         with conn.cursor() as cur :
-            cur.execute('desc {}'.format(table_name))
+            cur.execute(sql)
             table_cols = cur.fetchall()
         conn.commit()
 except Exception as e:
@@ -67,7 +82,8 @@ def get_camelcase(str, first_upper=False):
         return ''
     pass
 
-def get_field_type(desc):
+def get_field_type(cdesc):
+    desc = str(cdesc).lower()
     if 'varchar' in desc or 'char' in desc or 'text' in desc:
         return 'String'
     elif desc.find('int(')==0 or 'tinyint' in desc:
@@ -83,6 +99,15 @@ def get_field_type(desc):
     else:
         return 'void'
     pass
+
+def get_field_comment(col):
+    col_val = "default:"+str(col[2])+" " if col[2] else ''
+    char_max_len = "char length:"+str(col[3])+" " if col[3] else ''
+    number_len = "length:"+str(col[4]) if col[4] else ''
+    number_scale = "scale:"+str(col[5]) if col[5] else ''
+    comment = col[6] if col[6] else ''
+    field_cmt="\n        ".join([comment, col_val + char_max_len + number_len +" "+ number_scale])
+    return field_cmt
 
 #输出实体类文件
 def out_entity_file(package_dir, table_name, table_columns):
@@ -110,12 +135,16 @@ def out_entity_file(package_dir, table_name, table_columns):
         field_desc = {
             'field_annotation' : '@Id' if 'PRI' in col else '@Column' ,
             'field_name' : get_camelcase(col_name),
-            'field_type' : get_field_type(col_type)
+            'field_type' : get_field_type(col_type),
+            'field_comment' : get_field_comment(col)
         }
         if field_desc['field_annotation']=='@Id':
             primary_type = field_desc['field_type']
         field_list.append(
-        """        
+        """
+        /**
+        {field_comment}
+        */   
         {field_annotation}
         private {field_type} {field_name};
         """.format(**field_desc)
