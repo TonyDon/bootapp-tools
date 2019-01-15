@@ -10,7 +10,7 @@ import java.util.Date;
 
 /**
  * <pre>
- *
+ * {comment}
  * @author {os_user}
  * by make_bootapp_skt.py script generated
  * at {create_time}

@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
         "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
 <mapper namespace="{app_package}.dao.{entity_name}DAO">
+<!-- {comment} -->
 
 	<sql id="queryCond">
 		{query_condition}

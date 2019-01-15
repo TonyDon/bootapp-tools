@@ -17,6 +17,7 @@ elif __file__ :
         curr_dir = os.path.dirname(os.path.realpath(__file__))
 
 table_cols = None
+table_comments = None 
 mysql_conn_info = mysql_info.split(' ')
 if mysql_conn_info and len(mysql_conn_info)==0:
     raise Exception('mysql连接信息错误.')
@@ -43,16 +44,29 @@ sql = """
         ORDER BY ORDINAL_POSITION asc
     """.format(table_name)
 
+
+sql2 = """
+        SELECT TABLE_NAME,TABLE_COMMENT FROM information_schema.TABLES WHERE table_name='{}';
+    """.format(table_name)
+    
 try:
         with conn.cursor() as cur :
             cur.execute(sql)
             table_cols = cur.fetchall()
+        with conn.cursor() as cur :
+            cur.execute(sql2)
+            table_comments = cur.fetchall()
         conn.commit()
 except Exception as e:
         conn.rollback()
         print(str(e))
 finally:
         conn.close()
+
+if not table_comments :
+    raise Exception('table comment not exist!')
+
+table_comment = str(table_comments[0][1]).replace('表', '')
 
 #构建包输出目录
 out_package_dir = os.path.join(out_dir, app_pack_name.replace('.', '/')) 
@@ -110,7 +124,7 @@ def get_field_comment(col):
     return field_cmt
 
 #输出实体类文件
-def out_entity_file(package_dir, table_name, table_columns):
+def out_entity_file(package_dir, table_name, table_columns, table_comment):
     entity_dir = 'model/entity'
     entity_name = get_camelcase(table_name, True)
     try_make_dirs(os.path.join(package_dir, entity_dir))
@@ -122,7 +136,8 @@ def out_entity_file(package_dir, table_name, table_columns):
         'app_package' : app_pack_name,
         'table_name'  : table_name,
         'os_user'     : os_user,
-        'copy_right'  : copy_right
+        'copy_right'  : copy_right,
+        'comment' : table_comment+' 实体类'
     }
     #TODO:
     field_list = []
@@ -176,7 +191,7 @@ def out_entity_file(package_dir, table_name, table_columns):
     return primary_type
     pass
 
-def out_query_file(package_dir, table_name, table_columns):
+def out_query_file(package_dir, table_name, table_columns, table_comment):
     query_dir = 'model/query'
     entity_name = get_camelcase(table_name, True)
     query_name = entity_name+'Query'
@@ -188,7 +203,8 @@ def out_query_file(package_dir, table_name, table_columns):
         'app_package' : app_pack_name,
         'query_name'  : query_name,
         'os_user'     : os_user,
-        'copy_right'  : copy_right
+        'copy_right'  : copy_right,
+        'comment' : table_comment + ' 条件查询对象'
     }
     #TODO:
     field_list = []
@@ -262,7 +278,7 @@ def out_query_file(package_dir, table_name, table_columns):
     pass
 
 # 输出DAO类文件
-def out_dao_file(package_dir, table_name):
+def out_dao_file(package_dir, table_name, table_comment):
     dao_dir = 'dao'
     entity_name = get_camelcase(table_name, True)
     dao_name = entity_name+'DAO'
@@ -275,7 +291,8 @@ def out_dao_file(package_dir, table_name):
         'app_package' : app_pack_name,
         'entity_name' : entity_name,
         'os_user'     : os_user,
-        'copy_right'  : copy_right
+        'copy_right'  : copy_right,
+        'comment' : table_comment + ' 数据操作对象'
     }
     out_content = file_tpl.format(**model)
     with open(file=out_file, mode='w', encoding="utf-8") as fw :
@@ -284,7 +301,7 @@ def out_dao_file(package_dir, table_name):
     pass
 
 # 输出mapper xml 文件
-def out_mapper_xml_file(package_dir, table_name, table_columns):
+def out_mapper_xml_file(package_dir, table_name, table_columns, table_comment):
     mapper_xml_dir = 'mapper_xml'
     entity_name = get_camelcase(table_name, True)
     try_make_dirs(os.path.join(package_dir, mapper_xml_dir))
@@ -295,7 +312,8 @@ def out_mapper_xml_file(package_dir, table_name, table_columns):
         'app_package' : app_pack_name,
         'table_name'  : table_name,
         'os_user'     : os_user,
-        'copy_right'  : copy_right
+        'copy_right'  : copy_right,
+        'comment' : table_comment
     }
     query_cond_list = []
     insert_cols = []
@@ -338,7 +356,7 @@ def out_mapper_xml_file(package_dir, table_name, table_columns):
     pass
 
 # 输出 service 文件
-def out_service_file(package_dir, table_name):
+def out_service_file(package_dir, table_name, table_comment):
     #TODO:
     service_dir = 'service'
     service_impl_dir = 'service/impl'
@@ -363,7 +381,8 @@ def out_service_file(package_dir, table_name):
         'app_package' : app_pack_name,
         'entity_name' : entity_name,
         'os_user'     : os_user,
-        'copy_right'  : copy_right
+        'copy_right'  : copy_right,
+        'comment' : table_comment +' 业务操作类'
     }
     service_out_content = service_file_tpl.format(**model)
     with open(file=service_out_file, mode='w', encoding="utf-8") as fw :
@@ -377,7 +396,7 @@ def out_service_file(package_dir, table_name):
     pass
 
 # 输出 controller 文件
-def out_controller_file(package_dir, table_name, primary_type):
+def out_controller_file(package_dir, table_name, primary_type, table_comment):
     #TODO:
     controller_dir = 'controller'
     entity_name = get_camelcase(table_name, True)
@@ -395,7 +414,8 @@ def out_controller_file(package_dir, table_name, primary_type):
         'primary_type': primary_type,
         'low_entity_name' : low_entity_name,
         'os_user'     : os_user,
-        'copy_right'  : copy_right
+        'copy_right'  : copy_right,
+        'comment' : table_comment + ' 控制层'
     }
     out_content = file_tpl.format(**model)
     with open(file=out_file, mode='w', encoding="utf-8") as fw :
@@ -405,9 +425,9 @@ def out_controller_file(package_dir, table_name, primary_type):
 
 
 # execute file out
-primary_type = out_entity_file(out_package_dir, table_name, table_cols)
-out_query_file(out_package_dir, table_name, table_cols)
-out_dao_file(out_package_dir, table_name)
-out_mapper_xml_file(out_package_dir, table_name, table_cols)
-out_service_file(out_package_dir, table_name)
-out_controller_file(out_package_dir, table_name, primary_type)
+primary_type = out_entity_file(out_package_dir, table_name, table_cols, table_comment)
+out_query_file(out_package_dir, table_name, table_cols, table_comment)
+out_dao_file(out_package_dir, table_name, table_comment)
+out_mapper_xml_file(out_package_dir, table_name, table_cols, table_comment)
+out_service_file(out_package_dir, table_name, table_comment)
+out_controller_file(out_package_dir, table_name, primary_type, table_comment)
