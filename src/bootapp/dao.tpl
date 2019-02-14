@@ -8,6 +8,7 @@ package {app_package}.dao;
 
 import org.springframework.stereotype.Repository;
 import {app_package}.model.entity.{entity_name};
+import {app_package}.support.db.PrimaryDAO;
 
 
 /**

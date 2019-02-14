@@ -6,6 +6,7 @@
 
 package {app_package}.model.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -23,7 +24,9 @@ import javax.persistence.Table;
 */
 @Table(name = "{table_name}")
 @Entity
-public class {entity_name} {{
+public class {entity_name} implements Serializable{{
+
+	private static final long serialVersionUID = {serial_uid}L;
 
 {field_area}
 

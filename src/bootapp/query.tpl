@@ -7,6 +7,7 @@
 package {app_package}.model.query;
 
 import java.util.Date;
+import {app_package}.support.view.BaseQuery;
 
 /**
  * <pre>

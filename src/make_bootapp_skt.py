@@ -2,6 +2,7 @@ import os, sys
 import pymysql
 import time
 import getpass
+import random
 
 os_user = getpass.getuser()
 mysql_info = input('请输入MYSQL连接信息(如: 127.0.0.1 3306 root root utf8 db_name):')
@@ -123,6 +124,9 @@ def get_field_comment(col):
     field_cmt="\n        ".join([comment, col_val + char_max_len + number_len +" "+ number_scale])
     return field_cmt
 
+def get_serial_uid():
+    return int(time.time()*1000000)<<2
+
 #输出实体类文件
 def out_entity_file(package_dir, table_name, table_columns, table_comment):
     entity_dir = 'model/entity'
@@ -137,7 +141,8 @@ def out_entity_file(package_dir, table_name, table_columns, table_comment):
         'table_name'  : table_name,
         'os_user'     : os_user,
         'copy_right'  : copy_right,
-        'comment' : table_comment+' 实体类'
+        'comment' : table_comment+' 实体类',
+        'serial_uid' : get_serial_uid()
     }
     #TODO:
     field_list = []
