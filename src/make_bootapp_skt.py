@@ -20,7 +20,7 @@ elif __file__ :
 table_cols = None
 table_comments = None 
 mysql_conn_info = mysql_info.split(' ')
-if mysql_conn_info and len(mysql_conn_info)==0:
+if mysql_conn_info and len(mysql_conn_info)<6:
     raise Exception('mysql连接信息错误.')
     
 conn = pymysql.connect(host=mysql_conn_info[0],
