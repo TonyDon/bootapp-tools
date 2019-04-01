@@ -1,7 +1,7 @@
 """
 BootappSktMaker ： A CRUD Spring Web skeleton generation tool by Python , Use with Other Project Bootapp
 Copyright (c) 2018~ uuola.com 
-Author: TangXiaodong 
+Author: Xiaodong Tang
 Email: uuola@vip.qq.com
 """
 import os
