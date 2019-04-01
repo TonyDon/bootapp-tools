@@ -91,8 +91,8 @@ class BootappSktMaker :
     
     def read_file(self, in_file):
         with open(file=in_file, mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
-        return ''.join(lines)
+            tpl = f.read()
+        return tpl
 
     def get_camelcase(self, str, first_upper=False):
         """
