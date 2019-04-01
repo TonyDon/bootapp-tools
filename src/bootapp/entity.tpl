@@ -18,7 +18,7 @@ import javax.persistence.Table;
 * <pre>
 * {comment}
 * @author {os_user}
-* by make_bootapp_skt.py script generated
+* by {script_name} generated
 * at {create_time} , table_name:{table_name}
 * </pre>
 */

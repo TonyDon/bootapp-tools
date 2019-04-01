@@ -13,7 +13,7 @@ import {app_package}.support.view.BaseQuery;
  * <pre>
  * {comment}
  * @author {os_user}
- * by make_bootapp_skt.py script generated
+ * by {script_name} generated
  * at {create_time}
  * </pre>
  */
