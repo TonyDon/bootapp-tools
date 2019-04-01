@@ -139,7 +139,7 @@ class BootappSktMaker :
         return field_cmt
     
     def get_serial_uid(self):
-        return -int(time.time()*1000000)<<2
+        return -int(time.time()*1000000)
     
     def out_entity(self):
         out_file = os.path.join(self.entity_dir, self.entity_name+'.java')
