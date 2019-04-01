@@ -1,3 +1,9 @@
+"""
+BootappSktMaker ： A CRUD Spring Web skeleton generation tool by Python , Use with Other Project Bootapp
+Copyright (c) 2018~ uuola.com 
+Author: TangXiaodong 
+Email: uuola@vip.qq.com
+"""
 import os
 import pymysql
 import random
@@ -8,11 +14,11 @@ import platform
 class BootappSktMaker :
     
     SCRIPT_NAME = 'bootapp_skt_maker.py v1.0'
-    ENTITY_DIR = 'model/entity'
-    QUERY_DIR = 'model/query'
+    ENTITY_DIR = r'model\entity'
+    QUERY_DIR = r'model\query'
     CONTROLLER_DIR = 'controller'
     SERVICE_DIR = 'service'
-    SERVICE_IMPL_DIR = 'service/impl'
+    SERVICE_IMPL_DIR = r'service\impl'
     MAPPER_XML_DIR = 'mapper_xml'
     DAO_DIR = 'dao'
     COMMONS_DATA = {}
@@ -36,7 +42,7 @@ class BootappSktMaker :
         if not package_name :
             raise Exception('package_name is required.')
         else:
-            self.package_dir = os.path.join(self.out_dir, package_name.replace('.', '/')) 
+            self.package_dir = os.path.abspath(os.path.join(self.out_dir, package_name.replace('.', '/')))
             self.make_dirs(self.package_dir)
             self.entity_dir = os.path.join(self.package_dir, self.ENTITY_DIR) 
             self.make_dirs(self.entity_dir)
@@ -425,6 +431,6 @@ if __name__ == '__main__' :
     maker.out_controller()
     
     if  'win' in str(platform.system()).lower() :
-        os.popen('cmd /c explorer {}'.format(os.path.abspath(maker.package_dir)))
+        os.popen('cmd /c explorer {}'.format(maker.package_dir))
     print('输出包目录为：', maker.package_dir)
     input('请按回车键结束...')
