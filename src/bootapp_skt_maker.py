@@ -8,6 +8,7 @@ import os
 import pymysql
 import time
 import platform
+import json
 
 class ColsDef :
     col_name = None
@@ -21,6 +22,9 @@ class ColsDef :
     
     def __init__(self):
         pass
+    
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
 class BootappSktMaker :
     
