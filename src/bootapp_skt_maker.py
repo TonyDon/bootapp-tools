@@ -6,10 +6,21 @@ Email: uuola@vip.qq.com
 """
 import os
 import pymysql
-import random
 import time
 import platform
 
+class ColsDef :
+    col_name = None
+    col_type = None
+    col_default_val = None
+    col_comment = None
+    char_max_len = None
+    number_len = None
+    number_scale = None
+    is_pri = False
+    
+    def __init__(self):
+        pass
 
 class BootappSktMaker :
     
@@ -24,7 +35,7 @@ class BootappSktMaker :
     COMMONS_DATA = {}
     
     
-    def __init__(self, out_dir=None, package_name=None, tb_name=None, tb_cols=None, tb_comment=None, copy_right='@copyright '):
+    def __init__(self, out_dir=None, package_name=None, tb_name=None, col_defs=None, tb_comment=None, copy_right='@copyright '):
         self.create_time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.curr_dir = None
         import sys
@@ -66,10 +77,10 @@ class BootappSktMaker :
             self.low_entity_name = self.get_camelcase(tb_name)
             self.tb_name=tb_name
         
-        if not tb_cols :
-            raise Exception('table_cols data is empty.')
+        if not col_defs :
+            raise Exception('col_defs data is empty.')
         else:
-            self.tb_cols = tb_cols
+            self.col_defs = col_defs
         
         if not tb_comment :
             raise Exception('table_comment data is empty.')
@@ -100,12 +111,12 @@ class BootappSktMaker :
             tpl = f.read()
         return tpl
 
-    def get_camelcase(self, str, first_upper=False):
+    def get_camelcase(self, s, first_upper=False):
         """
                      将下划线分割词转换为驼峰写发，eg: user_name-> UserName, or userName
         """
-        if str  :
-            strSegs = str.lower().split('_')
+        if s  :
+            strSegs = s.lower().split('_')
             segs = [ seg.capitalize() for seg in strSegs]
             #如果转换后第一个字符需要小写
             if not first_upper :
@@ -136,11 +147,11 @@ class BootappSktMaker :
         
         
     def get_field_comment(self, col):
-        col_val = "default:"+str(col[2])+" " if col[2] else ''
-        char_max_len = "char length:"+str(col[3])+" " if col[3] else ''
-        number_len = "length:"+str(col[4]) if col[4] else ''
-        number_scale = "scale:"+str(col[5]) if col[5] else ''
-        comment = col[6] if col[6] else ''
+        col_val = "default:" + str(col.col_default_val)+ " " if col.col_default_val else ''
+        char_max_len = "char length:" + str(col.char_max_len) + " " if col.char_max_len else ''
+        number_len = "length:"+str(col.number_len) if col.number_len else ''
+        number_scale = "scale:"+str(col.number_scale) if col.number_scale else ''
+        comment = col.col_comment if col.col_comment else ''
         field_cmt="\n        ".join([comment, col_val + char_max_len + number_len +" "+ number_scale])
         return field_cmt
     
@@ -154,11 +165,11 @@ class BootappSktMaker :
         method_list = []
         self.primary_type='Long'
         # 处理每行字段信息
-        for col in self.tb_cols:
-            col_name = col[0]
-            col_type = col[1]
+        for col in self.col_defs:
+            col_name = col.col_name
+            col_type = col.col_type
             field_desc = {
-                'field_annotation' : '@Id' if 'PRI' in col else '@Column' ,
+                'field_annotation' : '@Id' if col.is_pri else '@Column' ,
                 'field_name' : self.get_camelcase(col_name),
                 'field_type' : self.get_field_type(col_type),
                 'field_comment' : self.get_field_comment(col)
@@ -209,9 +220,9 @@ class BootappSktMaker :
         field_list = []
         method_list = []
         # 处理每行字段信息
-        for col in self.tb_cols:
-            col_name = col[0]
-            col_type = col[1]
+        for col in self.col_defs:
+            col_name = col.col_name
+            col_type = col.col_type
             field_desc = {
                 'field_name' : self.get_camelcase(col_name),
                 'field_type' : self.get_field_type(col_type)
@@ -292,10 +303,10 @@ class BootappSktMaker :
         insert_cols = []
         insert_entity_fields=[]
         # 处理每行字段信息
-        for col in self.tb_cols:
-            col_name = col[0]
+        for col in self.col_defs:
+            col_name = col.col_name
             field_name = self.get_camelcase(col_name);
-            if 'PRI' in col :
+            if col.is_pri :
                 model['pri_col']=col_name
                 model['pri_field']=field_name
             else:
@@ -369,18 +380,21 @@ if __name__ == '__main__' :
     out_dir = input('请输入输出目录(当前目录请直接回车):')
     copy_right= input('请输入版权信息:')
     
+    """
+    table_cols[
+                                        [字段名称，字段类型，字段默认值，字符最大个数，数值精度，小数精度，字段备注，字段主键 ]
+            ...]
+    """
     table_cols = None
     table_comments = None 
-    mysql_conn_info = mysql_info.split(' ')
-    if mysql_conn_info and len(mysql_conn_info)<6:
+    conn_info = mysql_info.split(' ')
+    if conn_info and len(conn_info)<6:
         raise Exception('mysql连接信息错误.')
     
-    conn = pymysql.connect(host=mysql_conn_info[0],
-                       port=int(mysql_conn_info[1]), 
-                       user=mysql_conn_info[2], 
-                       password=mysql_conn_info[3], 
-                       charset=mysql_conn_info[4], 
-                       db=mysql_conn_info[5])
+    table_name = table_name.strip()
+    db_name = conn_info[5].strip()
+    conn = pymysql.connect(host=conn_info[0], port=int(conn_info[1]),  user=conn_info[2], password=conn_info[3], 
+                           charset=conn_info[4], db=db_name)
     
     # 查询表字段信息
     sql = """
@@ -394,9 +408,9 @@ if __name__ == '__main__' :
               column_comment as comment,
               column_key as pri
             FROM information_schema.columns
-            WHERE table_name = '{}'
+            WHERE table_schema='{}' and table_name = '{}' 
             ORDER BY ORDINAL_POSITION asc
-        """.format(table_name)
+        """.format(db_name, table_name)
     
     # 查表备注信息
     sql2 = """
@@ -422,7 +436,24 @@ if __name__ == '__main__' :
     
     table_comment = str(table_comments[0][1]).replace('表', '')
     
-    maker = BootappSktMaker(out_dir, package_name, table_name, table_cols, table_comment, copy_right)
+    col_defs = []
+    if table_cols and len(table_cols)>0 :
+        for col in table_cols :
+            cd = ColsDef()
+            cd.col_name = col[0]
+            cd.col_type = col[1]
+            cd.col_default_val = col[2]
+            cd.char_max_len = col[3]
+            cd.number_len = col[4]
+            cd.number_scale = col[5]
+            cd.col_comment = col[6]
+            if col[7] and col[7] == 'PRI' :
+                cd.is_pri = True
+            col_defs.append(cd)
+            pass
+        pass
+    
+    maker = BootappSktMaker(out_dir, package_name, table_name, col_defs, table_comment, copy_right)
     maker.out_entity()
     maker.out_dao()
     maker.out_mapper()
@@ -433,4 +464,3 @@ if __name__ == '__main__' :
     if  'win' in str(platform.system()).lower() :
         os.popen('cmd /c explorer {}'.format(maker.package_dir))
     print('输出包目录为：', maker.package_dir)
-    input('请按回车键结束...')
