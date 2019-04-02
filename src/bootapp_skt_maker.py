@@ -440,8 +440,8 @@ if __name__ == '__main__' :
     if table_cols and len(table_cols)>0 :
         for col in table_cols :
             cd = ColsDef()
-            cd.col_name = col[0]
-            cd.col_type = col[1]
+            cd.col_name = str(col[0]).lower()
+            cd.col_type = str(col[1]).lower()
             cd.col_default_val = col[2]
             cd.char_max_len = col[3]
             cd.number_len = col[4]
