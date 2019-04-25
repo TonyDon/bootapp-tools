@@ -5,3 +5,4 @@ if mod_name :
         print(f1.read())
     with os.popen('pip list') as f2:
         print(f2.read())
+    input('\r\nEnd.')
