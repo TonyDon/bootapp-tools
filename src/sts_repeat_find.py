@@ -19,8 +19,13 @@ for f in files:
         elif meta < f_mate :
             file_dict[f_part_name] = f_mate
             remove_file_dict[f_part_name] = meta[1]+"_"+meta[2]
+        elif meta > f_mate:
+            file_dict[f_part_name] = meta
+            remove_file_dict[f_part_name] = f_mate[1]+"_"+f_mate[2]
             
-sts_plugins_mv = r'C:\sts-plugis\v'
+sts_plugins_mv = r'C:\tmp_dir_jar'
+if not os.path.exists(sts_plugins_mv) :
+    os.makedirs(sts_plugins_mv)
 for k,v in remove_file_dict.items():
     print(v)
     os.rename(os.path.join(sts_plugins_dir, v), os.path.join(sts_plugins_mv, v))   
