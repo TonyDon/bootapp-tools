@@ -4,11 +4,13 @@ Copyright (c) 2018~ uuola.com
 Author: Xiaodong Tang
 Email: uuola@vip.qq.com
 """
-import os
-import pymysql
-import time
-import platform
 import json
+import os
+import platform
+import time
+
+import pymysql
+
 
 class ColsDef :
     col_name = None
