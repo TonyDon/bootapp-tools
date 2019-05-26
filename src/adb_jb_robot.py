@@ -24,6 +24,12 @@ def adb_move_to(x1:int,y1:int, x2:int, y2:int):
     call(cmd, shell=True)
     print('%s ....ok' % cmd)
     time.sleep(1)
+    
+def adb_long_press(x:int,y:int, press_time = 800):
+    cmd = 'adb shell input swipe %s %s %s %s %s' % (x,y,x+1,y+1,press_time)
+    call(cmd, shell=True)
+    print('%s ....ok' % cmd)
+    time.sleep(1)
 
 def adb_start_app(app_package:str, app_main_activity:str):
     cmd = 'adb shell am start -n %s/%s.%s' % (app_package, app_package,app_main_activity)
@@ -55,7 +61,7 @@ if __name__ == '__main__' :
     init_usb_conn();
     awake_phone();
     adb_start_app('com.jingdong.app.mall','main.MainActivity')
-    time.sleep(5)
+    time.sleep(6)
     # 点击领京豆
     adb_input_shell('tap 200 700')
     time.sleep(5)
@@ -64,7 +70,7 @@ if __name__ == '__main__' :
     time.sleep(3)
     # 点击种瓜分豆
     adb_input_shell('tap 320 340')
-    time.sleep(3)
+    time.sleep(4)
     # 点击农场营养液
     adb_input_shell('tap 150 650')
     # 点击逛会场
@@ -72,6 +78,7 @@ if __name__ == '__main__' :
     time.sleep(3)
     # 会场里 模拟上下滑动
     adb_move_to(200,800, 200, 300)
+    #adb_long_press(200,320)
     adb_move_to(200,300, 200, 500)
     #返回到农场
     adb_input_shell('keyevent 4')
