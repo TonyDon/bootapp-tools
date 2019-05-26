@@ -1,6 +1,8 @@
 import os, time
 from subprocess import call, Popen
 
+call('adb shell input keyevent 26',shell=True)
+time.sleep(2)
 call('adb shell input tap 200 690',shell=True)
 time.sleep(5)
 call('adb shell input tap 650 200',shell=True)
