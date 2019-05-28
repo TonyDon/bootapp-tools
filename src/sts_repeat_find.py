@@ -1,6 +1,6 @@
 import os
 
-sts_plugins_dir = r'C:\app\sts4\plugins'
+sts_plugins_dir = input('input sts plugins dir:')
 files = os.listdir(sts_plugins_dir)
 file_dict = dict()
 remove_file_dict = dict()
@@ -23,7 +23,7 @@ for f in files:
             file_dict[f_part_name] = meta
             remove_file_dict[f_part_name] = f_mate[1]+"_"+f_mate[2]
             
-sts_plugins_mv = r'C:\tmp_dir_jar'
+sts_plugins_mv = input('input sts plugins moveout dir:')
 if not os.path.exists(sts_plugins_mv) :
     os.makedirs(sts_plugins_mv)
 for k,v in remove_file_dict.items():
