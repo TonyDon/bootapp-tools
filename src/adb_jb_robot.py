@@ -25,7 +25,7 @@ def adb_move_to(x1:int,y1:int, x2:int, y2:int):
     print('%s ....ok' % cmd)
     time.sleep(1)
     
-def adb_long_press(x:int,y:int, press_time = 800):
+def adb_long_press(x:int,y:int, press_time = 1200):
     cmd = 'adb shell input swipe %s %s %s %s %s' % (x,y,x+1,y+1,press_time)
     call(cmd, shell=True)
     print('%s ....ok' % cmd)
@@ -61,7 +61,7 @@ if __name__ == '__main__' :
     init_usb_conn();
     awake_phone();
     adb_start_app('com.jingdong.app.mall','main.MainActivity')
-    time.sleep(8)
+    time.sleep(10)
     # 点击领京豆
     adb_input_shell('tap 200 700')
     time.sleep(5)
