@@ -21,7 +21,7 @@ for f in files:
             remove_file_dict[f_part_name] = meta[1]+"_"+meta[2]
         elif meta > f_mate:
             file_dict[f_part_name] = meta
-            remove_file_dict[f_part_name] = f_mate[1]+"_"+f_mate[2]
+            remove_file_dict[f_part_name] = f_mate[1] + "_" + f_mate[2]
             
 sts_plugins_mv = input('input sts plugins moveout dir:')
 if not os.path.exists(sts_plugins_mv) :
