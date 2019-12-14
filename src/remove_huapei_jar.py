@@ -19,7 +19,7 @@ def force_remove_file(curr_file_path:str):
 
 files  = os.listdir(th_mvn_dir)
 for f in files:
-    if 'hp' in f or 'huapei' in f :
+    if 'hp' in f or 'huapei' in f or 'used' in f:
         curr_file_path = os.path.join(th_mvn_dir, f)
         print(curr_file_path)
         force_remove_file(curr_file_path)

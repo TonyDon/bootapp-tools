@@ -8,11 +8,12 @@ import json
 import os
 import platform
 import time
+from typing import List
 
 import pymysql
 
 
-class ColsDef :
+class ColsDef:
     col_name = None
     col_type = None
     col_default_val = None
@@ -21,15 +22,15 @@ class ColsDef :
     number_len = None
     number_scale = None
     is_pri = False
-    
+
     def __init__(self):
         pass
-    
+
     def __repr__(self):
         return json.dumps(self.__dict__)
 
-class BootappSktMaker :
-    
+
+class BootappSktMaker:
     SCRIPT_NAME = 'bootapp_skt_maker.py v1.0'
     ENTITY_DIR = r'model\entity'
     QUERY_DIR = r'model\query'
@@ -39,29 +40,29 @@ class BootappSktMaker :
     MAPPER_XML_DIR = 'mapper_xml'
     DAO_DIR = 'dao'
     COMMONS_DATA = {}
-    
-    
-    def __init__(self, out_dir=None, package_name=None, tb_name=None, col_defs=None, tb_comment=None, copy_right='@copyright '):
+
+    def __init__(self, out_dir: str =None, package_name: str =None, tb_name: str=None, col_defs: List[ColsDef] =None, tb_comment: str=None,
+                 copy_right: str='@copyright '):
         self.create_time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.curr_dir = None
         import sys
         if getattr(sys, 'frozen', False):
-                self.curr_dir = os.path.dirname(sys.executable)
-        elif __file__ :
-                self.curr_dir = os.path.dirname(os.path.realpath(__file__))
+            self.curr_dir = os.path.dirname(sys.executable)
+        elif __file__:
+            self.curr_dir = os.path.dirname(os.path.realpath(__file__))
         import getpass
         self.os_user = getpass.getuser()
-        if out_dir and len(out_dir)>1 :
+        if out_dir and len(out_dir) > 1:
             self.out_dir = os.path.join(out_dir, 'out')
         else:
             self.out_dir = os.path.join(self.curr_dir, 'out')
-            
-        if not package_name :
+
+        if not package_name:
             raise Exception('package_name is required.')
         else:
             self.package_dir = os.path.abspath(os.path.join(self.out_dir, package_name.replace('.', '/')))
             self.make_dirs(self.package_dir)
-            self.entity_dir = os.path.join(self.package_dir, self.ENTITY_DIR) 
+            self.entity_dir = os.path.join(self.package_dir, self.ENTITY_DIR)
             self.make_dirs(self.entity_dir)
             self.controller_dir = os.path.join(self.package_dir, self.CONTROLLER_DIR)
             self.make_dirs(self.controller_dir)
@@ -75,43 +76,43 @@ class BootappSktMaker :
             self.make_dirs(self.query_dir)
             self.mapper_dir = os.path.join(self.package_dir, self.MAPPER_XML_DIR)
             self.make_dirs(self.mapper_dir)
-        
-        if not tb_name :
+
+        if not tb_name:
             raise Exception('table_name is required.')
         else:
             self.entity_name = self.get_camelcase(tb_name, True)
             self.low_entity_name = self.get_camelcase(tb_name)
-            self.tb_name=tb_name
-        
-        if not col_defs :
+            self.tb_name = tb_name
+
+        if not col_defs:
             raise Exception('col_defs data is empty.')
         else:
             self.col_defs = col_defs
-        
-        if not tb_comment :
+
+        if not tb_comment:
             raise Exception('table_comment data is empty.')
-        
+
         self.COMMONS_DATA = {
-                'entity_name' : self.entity_name,
-                'low_entity_name' : self.low_entity_name,
-                'controller_name' : self.entity_name+'Controller',
-                'query_name'  : self.entity_name+'Query',
-                'dao_name' : self.entity_name+'DAO',
-                'service_name' : self.entity_name+'Service',
-                'service_impl_name' : self.entity_name+'ServiceImpl',
-                'create_time' : self.create_time,
-                'app_package' : package_name,
-                'table_name'  : self.tb_name,
-                'os_user'     : self.os_user,
-                'copy_right'  : copy_right,
-                'comment' : tb_comment,
-                'script_name' : self.SCRIPT_NAME
-            }
-    
+            'entity_name': self.entity_name,
+            'low_entity_name': self.low_entity_name,
+            'controller_name': self.entity_name + 'Controller',
+            'query_name': self.entity_name + 'Query',
+            'dao_name': self.entity_name + 'DAO',
+            'service_name': self.entity_name + 'Service',
+            'service_impl_name': self.entity_name + 'ServiceImpl',
+            'create_time': self.create_time,
+            'app_package': package_name,
+            'table_name': self.tb_name,
+            'os_user': self.os_user,
+            'copy_right': copy_right,
+            'comment': tb_comment,
+            'script_name': self.SCRIPT_NAME
+        }
+
     def make_dirs(self, dir):
-        if not os.path.exists(dir) :
+        if not os.path.exists(dir):
             os.makedirs(dir)
-    
+
     def read_file(self, in_file):
         with open(file=in_file, mode='r', encoding='utf-8') as f:
             tpl = f.read()
@@ -121,16 +122,16 @@ class BootappSktMaker :
         """
                      将下划线分割词转换为驼峰写发，eg: user_name-> UserName, or userName
         """
-        if s  :
+        if s:
             strSegs = s.lower().split('_')
-            segs = [ seg.capitalize() for seg in strSegs]
-            #如果转换后第一个字符需要小写
-            if not first_upper :
+            segs = [seg.capitalize() for seg in strSegs]
+            # 如果转换后第一个字符需要小写
+            if not first_upper:
                 segs[0] = segs[0].lower()
             return ''.join(segs)
         else:
             return ''
-    
+
     def get_field_type(self, cdesc):
         """
                         根据字段类型返回对应的JAVA类型
@@ -138,52 +139,51 @@ class BootappSktMaker :
         desc = str(cdesc).lower()
         if 'varchar' in desc or 'char' in desc or 'text' in desc:
             return 'String'
-        elif desc.find('int(')==0 or 'tinyint' in desc:
+        elif desc.find('int(') == 0 or 'tinyint' in desc:
             return 'Integer'
         elif 'bigint' in desc:
             return 'Long'
-        elif 'datetime' in desc :
+        elif 'datetime' in desc:
             return 'Date'
-        elif 'double' in desc :
+        elif 'double' in desc:
             return 'Double'
-        elif 'decimal' in desc :
+        elif 'decimal' in desc:
             return 'BigDecimal'
         else:
             return 'void'
-        
-        
+
     def get_field_comment(self, col):
-        col_val = "default:" + str(col.col_default_val)+ " " if col.col_default_val else ''
+        col_val = "default:" + str(col.col_default_val) + " " if col.col_default_val else ''
         char_max_len = "char length:" + str(col.char_max_len) + " " if col.char_max_len else ''
-        number_len = "length:"+str(col.number_len) if col.number_len else ''
-        number_scale = "scale:"+str(col.number_scale) if col.number_scale else ''
+        number_len = "length:" + str(col.number_len) if col.number_len else ''
+        number_scale = "scale:" + str(col.number_scale) if col.number_scale else ''
         comment = col.col_comment if col.col_comment else ''
-        field_cmt="\n        ".join([comment, col_val + char_max_len + number_len +" "+ number_scale])
+        field_cmt = "\n        ".join([comment, col_val + char_max_len + number_len + " " + number_scale])
         return field_cmt
-    
+
     def get_serial_uid(self):
-        return -int(time.time()*1000000)
-    
+        return -int(time.time() * 1000000)
+
     def out_entity(self):
-        out_file = os.path.join(self.entity_dir, self.entity_name+'.java')
-        file_tpl = self.read_file(self.curr_dir+'/bootapp/entity.tpl')
+        out_file = os.path.join(self.entity_dir, self.entity_name + '.java')
+        file_tpl = self.read_file(self.curr_dir + '/bootapp/entity.tpl')
         field_list = []
         method_list = []
-        self.primary_type='Long'
+        self.primary_type = 'Long'
         # 处理每行字段信息
         for col in self.col_defs:
             col_name = col.col_name
             col_type = col.col_type
             field_desc = {
-                'field_annotation' : '@Id' if col.is_pri else '@Column' ,
-                'field_name' : self.get_camelcase(col_name),
-                'field_type' : self.get_field_type(col_type),
-                'field_comment' : self.get_field_comment(col)
+                'field_annotation': '@Id' if col.is_pri else '@Column',
+                'field_name': self.get_camelcase(col_name),
+                'field_type': self.get_field_type(col_type),
+                'field_comment': self.get_field_comment(col)
             }
-            if field_desc['field_annotation']=='@Id':
+            if field_desc['field_annotation'] == '@Id':
                 primary_type = field_desc['field_type']
             field_list.append(
-            """
+                """
             /**
             {field_comment}
             */   
@@ -191,13 +191,13 @@ class BootappSktMaker :
             private {field_type} {field_name};
             """.format(**field_desc)
             )
-            method_desc={
-                'method' : self.get_camelcase(col_name, True),
-                'field_name' : field_desc['field_name'],
-                'field_type' : field_desc['field_type']
+            method_desc = {
+                'method': self.get_camelcase(col_name, True),
+                'field_name': field_desc['field_name'],
+                'field_type': field_desc['field_type']
             }
             method_list.append(
-            """
+                """
             public {field_type} get{method}() {{
                 return {field_name};
             }}
@@ -209,20 +209,20 @@ class BootappSktMaker :
             )
             pass
         model = {}
-        model['field_area']=''.join(field_list)
-        model['method_area']=''.join(method_list)
-        model['serial_uid']=self.get_serial_uid()
+        model['field_area'] = ''.join(field_list)
+        model['method_area'] = ''.join(method_list)
+        model['serial_uid'] = self.get_serial_uid()
         model.update(self.COMMONS_DATA)
         out_content = file_tpl.format(**model)
-        with open(file=out_file, mode='w', encoding="utf-8") as fw :
+        with open(file=out_file, mode='w', encoding="utf-8") as fw:
             fw.write(out_content)
             print('--Entity file out done. {}'.format(out_file))
         pass
-    
+
     def out_query(self):
-        out_file = os.path.join(self.query_dir, self.COMMONS_DATA['query_name']+'.java')
-        file_tpl = self.read_file(self.curr_dir+'/bootapp/query.tpl')
-        #TODO:
+        out_file = os.path.join(self.query_dir, self.COMMONS_DATA['query_name'] + '.java')
+        file_tpl = self.read_file(self.curr_dir + '/bootapp/query.tpl')
+        # TODO:
         field_list = []
         method_list = []
         # 处理每行字段信息
@@ -230,21 +230,21 @@ class BootappSktMaker :
             col_name = col.col_name
             col_type = col.col_type
             field_desc = {
-                'field_name' : self.get_camelcase(col_name),
-                'field_type' : self.get_field_type(col_type)
+                'field_name': self.get_camelcase(col_name),
+                'field_type': self.get_field_type(col_type)
             }
             field_list.append(
-            """
+                """
             private {field_type} {field_name};
             """.format(**field_desc)
             )
-            method_desc={
-                'method' : self.get_camelcase(col_name, True),
-                'field_name' : field_desc['field_name'],
-                'field_type' : field_desc['field_type']
+            method_desc = {
+                'method': self.get_camelcase(col_name, True),
+                'field_name': field_desc['field_name'],
+                'field_type': field_desc['field_type']
             }
             method_list.append(
-            """
+                """
             public {field_type} get{method}() {{
                 return {field_name};
             }}
@@ -254,17 +254,17 @@ class BootappSktMaker :
             }}
             """.format(**method_desc)
             )
-            
+
             if col_name == 'create_time':
                 field_list.append(
-            """
+                    """
             private Date beginCreateTime;
             
             private Date endCreateTime;
             """
-            )
+                )
                 method_list.append(
-            """
+                    """
             public Date getBeginCreateTime() {
                 return beginCreateTime;
             }
@@ -281,127 +281,125 @@ class BootappSktMaker :
                 this.endCreateTime = endCreateTime;
             }
             """
-            )
+                )
                 pass
             pass
         model = {}
-        model['field_area']=''.join(field_list)
-        model['method_area']=''.join(method_list)
+        model['field_area'] = ''.join(field_list)
+        model['method_area'] = ''.join(method_list)
         model.update(self.COMMONS_DATA)
         out_content = file_tpl.format(**model)
-        with open(file=out_file, mode='w', encoding="utf-8") as fw :
+        with open(file=out_file, mode='w', encoding="utf-8") as fw:
             fw.write(out_content)
             print('--Query file out done. {}'.format(out_file))
-    
+
     def out_dao(self):
-        out_file = os.path.join(self.dao_dir, self.COMMONS_DATA['dao_name']+'.java')
-        file_tpl = self.read_file(self.curr_dir+'/bootapp/dao.tpl')
+        out_file = os.path.join(self.dao_dir, self.COMMONS_DATA['dao_name'] + '.java')
+        file_tpl = self.read_file(self.curr_dir + '/bootapp/dao.tpl')
         out_content = file_tpl.format(**self.COMMONS_DATA)
-        with open(file=out_file, mode='w', encoding="utf-8") as fw :
+        with open(file=out_file, mode='w', encoding="utf-8") as fw:
             fw.write(out_content)
             print('--DAO file out done. {}'.format(out_file))
-            
+
     def out_mapper(self):
-        out_file = os.path.join(self.mapper_dir, self.entity_name+'Mapper.xml')
-        file_tpl = self.read_file(self.curr_dir+'/bootapp/mapper.xml.tpl')
+        out_file = os.path.join(self.mapper_dir, self.entity_name + 'Mapper.xml')
+        file_tpl = self.read_file(self.curr_dir + '/bootapp/mapper.xml.tpl')
         model = {}
         query_cond_list = []
         insert_cols = []
-        insert_entity_fields=[]
+        insert_entity_fields = []
         # 处理每行字段信息
         for col in self.col_defs:
             col_name = col.col_name
             field_name = self.get_camelcase(col_name);
-            if col.is_pri :
-                model['pri_col']=col_name
-                model['pri_field']=field_name
+            if col.is_pri:
+                model['pri_col'] = col_name
+                model['pri_field'] = field_name
             else:
                 insert_cols.append(col_name)
-                insert_entity_fields.append('#{{{0}.{1}}}'.format(self.entity_name,field_name))
+                insert_entity_fields.append('#{{{0}.{1}}}'.format(self.entity_name, field_name))
             field_desc = {
-                'field_name' : field_name,
-                'col_name' : col_name
+                'field_name': field_name,
+                'col_name': col_name
             }
             if col_name == 'create_time':
                 query_cond_list.append(
-                """
+                    """
                 <if test="beginCreateTime!=null and endCreateTime!=null">
                     and ( create_time <![CDATA[ >= ]]> #{{beginCreateTime}} and create_time <![CDATA[ < ]]> #{{endCreateTime}} )
                 </if>""".format(**field_desc)
                 )
             else:
                 query_cond_list.append(
-                """
+                    """
                 <if test="{field_name}!=null">and {col_name}=#{{{field_name}}}</if>""".format(**field_desc)
                 )
             pass
-        
-        model['query_condition']=''.join(query_cond_list)
-        model['insert_cols']=',\n          '.join(insert_cols)
-        model['insert_entity_fields']=',\n          '.join(insert_entity_fields)
+
+        model['query_condition'] = ''.join(query_cond_list)
+        model['insert_cols'] = ',\n          '.join(insert_cols)
+        model['insert_entity_fields'] = ',\n          '.join(insert_entity_fields)
         model.update(self.COMMONS_DATA)
         out_content = file_tpl.format(**model)
-        with open(file=out_file, mode='w', encoding="utf-8") as fw :
+        with open(file=out_file, mode='w', encoding="utf-8") as fw:
             fw.write(out_content)
             print('--mapper xml file out done. {}'.format(out_file))
-            
+
     def out_services(self):
-        service_out_file = os.path.join(self.service_dir, self.COMMONS_DATA['service_name']+'.java')
-        service_file_tpl = self.read_file(self.curr_dir+'/bootapp/service.tpl')
-        
-        service_impl_out_file = os.path.join(self.service_impl_dir, self.COMMONS_DATA['service_impl_name']+'.java')
-        service_impl_file_tpl = self.read_file(self.curr_dir+'/bootapp/service.impl.tpl')
-        model={}
+        service_out_file = os.path.join(self.service_dir, self.COMMONS_DATA['service_name'] + '.java')
+        service_file_tpl = self.read_file(self.curr_dir + '/bootapp/service.tpl')
+
+        service_impl_out_file = os.path.join(self.service_impl_dir, self.COMMONS_DATA['service_impl_name'] + '.java')
+        service_impl_file_tpl = self.read_file(self.curr_dir + '/bootapp/service.impl.tpl')
+        model = {}
         model.update(self.COMMONS_DATA)
         service_out_content = service_file_tpl.format(**model)
-        with open(file=service_out_file, mode='w', encoding="utf-8") as fw :
+        with open(file=service_out_file, mode='w', encoding="utf-8") as fw:
             fw.write(service_out_content)
             print('--Service file out done. {}'.format(service_out_file))
-            
+
         service_impl_out_content = service_impl_file_tpl.format(**model)
-        with open(file=service_impl_out_file, mode='w', encoding="utf-8") as fw :
+        with open(file=service_impl_out_file, mode='w', encoding="utf-8") as fw:
             fw.write(service_impl_out_content)
             print('--Service Impl file out done. {}'.format(service_impl_out_file))
-            
+
     def out_controller(self):
-        out_file = os.path.join(self.controller_dir, self.COMMONS_DATA['controller_name']+'.java')
-        file_tpl = self.read_file(self.curr_dir+'/bootapp/controller.tpl')
-        model={
-            'req_mapping' : self.entity_name.lower(),
+        out_file = os.path.join(self.controller_dir, self.COMMONS_DATA['controller_name'] + '.java')
+        file_tpl = self.read_file(self.curr_dir + '/bootapp/controller.tpl')
+        model = {
+            'req_mapping': self.entity_name.lower(),
             'primary_type': self.primary_type
-            }
+        }
         model.update(self.COMMONS_DATA)
         out_content = file_tpl.format(**model)
-        with open(file=out_file, mode='w', encoding="utf-8") as fw :
+        with open(file=out_file, mode='w', encoding="utf-8") as fw:
             fw.write(out_content)
             print('--Controller file out done. {}'.format(out_file))
 
 
-
-
-if __name__ == '__main__' :
+if __name__ == '__main__':
     mysql_info = input('请输入MYSQL连接信息(如: 127.0.0.1 3306 root root utf8 db_name):')
     table_name = input('请输入MYSQL表名称:')
     package_name = input('请输入项目包名称(如：com.uuola.app):')
     out_dir = input('请输入输出目录(当前目录请直接回车):')
-    copy_right= input('请输入版权信息:')
-    
+    copy_right = input('请输入版权信息:')
+
     """
     table_cols[
                                         [字段名称，字段类型，字段默认值，字符最大个数，数值精度，小数精度，字段备注，字段主键 ]
             ...]
     """
     table_cols = None
-    table_comments = None 
+    table_comments = None
     conn_info = mysql_info.split(' ')
-    if conn_info and len(conn_info)<6:
+    if conn_info and len(conn_info) < 6:
         raise Exception('mysql连接信息错误.')
-    
+
     table_name = table_name.strip()
     db_name = conn_info[5].strip()
-    conn = pymysql.connect(host=conn_info[0], port=int(conn_info[1]),  user=conn_info[2], password=conn_info[3], 
+    conn = pymysql.connect(host=conn_info[0], port=int(conn_info[1]), user=conn_info[2], password=conn_info[3],
                            charset=conn_info[4], db=db_name)
-    
+
     # 查询表字段信息
     sql = """
             SELECT
@@ -417,34 +415,34 @@ if __name__ == '__main__' :
             WHERE table_schema='{}' and table_name = '{}' 
             ORDER BY ORDINAL_POSITION asc
         """.format(db_name, table_name)
-    
+
     # 查表备注信息
     sql2 = """
         SELECT TABLE_NAME, TABLE_COMMENT FROM information_schema.TABLES WHERE table_name='{}';
     """.format(table_name)
-    
+
     try:
-            with conn.cursor() as cur :
-                cur.execute(sql)
-                table_cols = cur.fetchall()
-            with conn.cursor() as cur :
-                cur.execute(sql2)
-                table_comments = cur.fetchall()
-            conn.commit()
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            table_cols = cur.fetchall()
+        with conn.cursor() as cur:
+            cur.execute(sql2)
+            table_comments = cur.fetchall()
+        conn.commit()
     except Exception as e:
-            conn.rollback()
-            print(str(e))
+        conn.rollback()
+        print(str(e))
     finally:
-            conn.close()
-            
-    if not table_comments :
+        conn.close()
+
+    if not table_comments:
         raise Exception('table comment not exist!')
-    
+
     table_comment = str(table_comments[0][1]).replace('表', '')
-    
-    col_defs = []
-    if table_cols and len(table_cols)>0 :
-        for col in table_cols :
+
+    col_defs: List[ColsDef] = []
+    if table_cols and len(table_cols) > 0:
+        for col in table_cols:
             cd = ColsDef()
             cd.col_name = str(col[0]).lower()
             cd.col_type = str(col[1]).lower()
@@ -453,12 +451,13 @@ if __name__ == '__main__' :
             cd.number_len = col[4]
             cd.number_scale = col[5]
             cd.col_comment = col[6]
-            if col[7] and col[7] == 'PRI' :
+            if col[7] and col[7] == 'PRI':
                 cd.is_pri = True
             col_defs.append(cd)
             pass
         pass
-    
+
+
     maker = BootappSktMaker(out_dir, package_name, table_name, col_defs, table_comment, copy_right)
     maker.out_entity()
     maker.out_dao()
@@ -466,7 +465,7 @@ if __name__ == '__main__' :
     maker.out_services()
     maker.out_query()
     maker.out_controller()
-    
-    if  'win' in str(platform.system()).lower() :
+
+    if 'win' in str(platform.system()).lower():
         os.popen('cmd /c explorer {}'.format(maker.package_dir))
     print('输出包目录为：', maker.package_dir)
